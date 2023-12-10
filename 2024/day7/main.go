@@ -12,7 +12,7 @@ var power = map[string]int{
 	"A": 14,
 	"K": 13,
 	"Q": 12,
-	"J": 11,
+	"J": 1,
 	"T": 10,
 }
 
@@ -143,7 +143,28 @@ func getCharCount(hand string) CharCountList {
 		i++
 	}
 
+	// Partie 2 ici
+	wildCardCount := 0
+	if len(cl) != 1 {
+		wildCardIndex := -1
+		for i, cc := range cl {
+			if cc.key == "J" {
+				wildCardCount = cc.value
+				wildCardIndex = i
+				cc.value = 0
+				break
+			}
+		}
+
+		if wildCardIndex != -1 {
+			cl = append(cl[:wildCardIndex], cl[wildCardIndex+1:]...)
+		}
+	}
+
 	sort.Sort(cl)
+
+	cl[0].value += wildCardCount
+
 	return cl
 }
 
@@ -151,8 +172,13 @@ func buildHand(handsWithBids []string) builtHands {
 	var buildHands builtHands
 
 	for _, handWithBid := range handsWithBids {
+		// handWithBid = strings.Replace(handWithBid, "\t", "", -1)
 		h := strings.Split(handWithBid, " ")
-		bid, _ := strconv.Atoi(h[1])
+		bid, err := strconv.Atoi(h[1])
+
+		if err != nil {
+			fmt.Println("erreur de convertion :", err)
+		}
 
 		buildHands = append(buildHands, hand{
 			cards: h[0],
@@ -175,5 +201,5 @@ func main() {
 		totalWinning += builtHand.bid * (i + 1)
 	}
 
-	fmt.Println(totalWinning)
+	fmt.Println("Gains totaux :", totalWinning)
 }
