@@ -30,6 +30,23 @@ func getGameSetDiceCountByColor(set, color string) int {
 	return 0
 }
 
+func getGameDiceCountByColor(game, color string) int {
+	diceMatch := regexp.MustCompile(`([0-9]+) `+color).FindAllStringSubmatch(game, -1)
+	if len(diceMatch) > 0 {
+		minCount := -9999
+		for _, dice := range diceMatch {
+			diceCount, _ := strconv.Atoi(dice[1])
+			if minCount < diceCount {
+				minCount = diceCount
+			}
+		}
+
+		return minCount
+	}
+
+	return 1
+}
+
 func isGamePossible(game string, maxDices MaxDices) bool {
 	sets := strings.Split(game, ";")
 
@@ -38,7 +55,6 @@ func isGamePossible(game string, maxDices MaxDices) bool {
 		greenDicesCount := getGameSetDiceCountByColor(set, "green")
 		redDicesCount := getGameSetDiceCountByColor(set, "red")
 
-		fmt.Printf("set: %s || R: %d G: %d B: %d\n", set, redDicesCount, blueDicesCount, greenDicesCount)
 		if blueDicesCount > maxDices.blue {
 			return false
 		}
@@ -54,23 +70,35 @@ func isGamePossible(game string, maxDices MaxDices) bool {
 	return true
 }
 
+func getGamePower(game string) int {
+	blueDicesMin := getGameDiceCountByColor(game, "blue")
+	redDicesMin := getGameDiceCountByColor(game, "red")
+	greenDicesMin := getGameDiceCountByColor(game, "green")
+	return blueDicesMin * redDicesMin * greenDicesMin
+}
+
 func main() {
 	content, _ := os.ReadFile("input.txt")
 	fileContent := string(content)
 
 	total := 0
+	totalPower := 0
 	diceGames := strings.Split(fileContent, "\r\n")
 	for _, game := range diceGames {
 		id := getGameId(game)
 
 		if isGamePossible(game, MaxDices{
-			blue:  14,
 			red:   12,
+			blue:  14,
 			green: 13,
 		}) {
 			total += id
 		}
+
+		power := getGamePower(game)
+		totalPower += power
 	}
 
 	fmt.Println(total)
+	fmt.Println(totalPower)
 }
