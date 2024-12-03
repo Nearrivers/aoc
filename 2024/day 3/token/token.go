@@ -3,7 +3,7 @@ package token
 const (
 	ILLEGAL = "ILLEGAL"
 	INT     = "INT"
-	CRLF    = "CRLF"
+	EOF     = "EOF"
 	LPARENT = "("
 	RPARENT = ")"
 	COMMA   = ","
@@ -20,7 +20,9 @@ type Token struct {
 }
 
 var keywords = map[string]TokenType{
-	"mul": MUL,
+	"mul":   MUL,
+	"do":    DO,
+	"don't": DONT,
 }
 
 func LookupKeyword(word string) TokenType {

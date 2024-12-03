@@ -8,14 +8,16 @@ import (
 )
 
 type Parser struct {
-	l         *lexer.Lexer
-	curToken  token.Token
-	peekToken token.Token
+	l                *lexer.Lexer
+	curToken         token.Token
+	peekToken        token.Token
+	isNextMulEnabled bool
 }
 
 func NewParser(l *lexer.Lexer) *Parser {
 	p := &Parser{
-		l: l,
+		l:                l,
+		isNextMulEnabled: true,
 	}
 
 	p.nextToken()
@@ -30,7 +32,7 @@ func (p *Parser) nextToken() {
 
 func (p *Parser) ParseLine() int {
 	lineResult := 0
-	for p.curToken.Type != token.CRLF {
+	for p.curToken.Type != token.EOF {
 		lineResult += p.parseExpression()
 		p.nextToken()
 	}
@@ -42,13 +44,24 @@ func (p *Parser) parseExpression() int {
 	switch p.curToken.Type {
 	case token.MUL:
 		return p.parseMulFunction()
+	case token.DO:
+		if p.expectParentheses() {
+			p.isNextMulEnabled = true
+		}
+		p.nextToken()
+		return p.parseExpression()
+	case token.DONT:
+		if p.expectParentheses() {
+			p.isNextMulEnabled = false
+		}
+		p.nextToken()
+		return p.parseExpression()
 	default:
 		return 0
 	}
 }
 
 func (p *Parser) parseMulFunction() int {
-
 	expectedMulFunctionTokens := []token.TokenType{
 		token.LPARENT,
 		token.INT,
@@ -78,7 +91,26 @@ func (p *Parser) parseMulFunction() int {
 		}
 	}
 
+	if !p.isNextMulEnabled {
+		return 0
+	}
+
 	return firstNumber * secondNumber
+}
+
+func (p *Parser) expectParentheses() bool {
+	expectedDoExpressionTokens := []token.TokenType{
+		token.LPARENT,
+		token.RPARENT,
+	}
+
+	for _, tok := range expectedDoExpressionTokens {
+		if !p.expectPeek(tok) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (p *Parser) peekTokenIs(t token.TokenType) bool {

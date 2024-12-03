@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 
@@ -10,20 +9,16 @@ import (
 )
 
 func main() {
-	f, err := os.Open("realInput.txt")
+	b, err := os.ReadFile("realInput.txt")
 	if err != nil {
 		panic(err)
 	}
 
-	scanner := bufio.NewScanner(f)
-
 	totalResult := 0
-	for scanner.Scan() {
-		line := scanner.Text()
-		l := lexer.NewLexer(line)
-		p := parser.NewParser(l)
-		totalResult += p.ParseLine()
-	}
+	line := string(b)
+	l := lexer.NewLexer(line)
+	p := parser.NewParser(l)
+	totalResult += p.ParseLine()
 
 	fmt.Println(totalResult)
 }

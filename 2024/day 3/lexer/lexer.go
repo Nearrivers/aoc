@@ -44,9 +44,38 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.RPARENT, l.ch)
 	case ',':
 		tok = newToken(token.COMMA, l.ch)
+	case 'd':
+		if l.peekChar() != 'o' {
+			l.readChar()
+			tok = newToken(token.ILLEGAL, l.ch)
+			return tok
+		}
+
+		l.readChar()
+		if l.peekChar() != 'n' {
+			l.readChar()
+			tok = newToken(token.DO, l.ch)
+			return tok
+		}
+
+		l.readChar()
+		if l.peekChar() != '\'' {
+			l.readChar()
+			tok = token.Token{Type: token.ILLEGAL, Literal: "don"}
+			return tok
+		}
+
+		l.readChar()
+		if l.peekChar() != 't' {
+			tok = token.Token{Type: token.ILLEGAL, Literal: "don'"}
+			return tok
+		}
+
+		tok = token.Token{Type: token.DONT, Literal: "don't"}
+		l.readChar()
 	case 0:
 		tok.Literal = ""
-		tok.Type = token.CRLF
+		tok.Type = token.EOF
 	default:
 		if isDigit(l.ch) {
 			tok.Type = token.INT
@@ -79,8 +108,16 @@ func (l *Lexer) readNumber() string {
 	return l.input[position:l.position]
 }
 
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	}
+
+	return l.input[l.readPosition]
+}
+
 func isLetter(ch byte) bool {
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z'
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '\''
 }
 
 func isDigit(ch byte) bool {
