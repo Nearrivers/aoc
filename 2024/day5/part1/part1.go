@@ -1,4 +1,4 @@
-package main
+package part1
 
 import (
 	"bufio"
@@ -54,19 +54,7 @@ func main() {
 			update = append(update, i)
 		}
 
-		if !isUpdateOrdered(rules, update) {
-			slices.SortFunc(update, func(a, b int) int {
-				for _, rule := range rules {
-					if rule[0] == a && rule[1] == b {
-						return -1
-					}
-
-					if rule[0] == b && rule[1] == a {
-						return 1
-					}
-				}
-				return 0
-			})
+		if isUpdateOrdered(rules, update) {
 			total += update[len(update)/2]
 		}
 	}
