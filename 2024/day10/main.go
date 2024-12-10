@@ -43,7 +43,22 @@ func (t Trails) String() string {
 	return out
 }
 
-func (p Trails) findTrail(i, j int, char trailChar) {}
+func (t Trails) findTrail(i, j int, char trailChar) int {
+	score := 0
+
+	if char == nine {
+		score++
+		return score
+	}
+
+	adjacentNumber := make([]trailChar, 4)
+
+	if i < len(t) -1 {
+		adjacentNumber[0] = t[i][j]
+	}
+
+	if i
+}
 
 func main() {
 	file, err := os.Open("example.txt")
@@ -63,7 +78,7 @@ func main() {
 	for i := range t {
 		for j, tc := range t[i] {
 			if tc == '0' {
-				t.findTrail(i, j, one)
+				totalScore += t.findTrail(i, j, one)
 			}
 		}
 	}
