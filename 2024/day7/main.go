@@ -8,6 +8,9 @@ import (
 	"strconv"
 )
 
+// I did not find the answer alone. The answer was found following
+// and understanding the code found in this repository https://github.com/pin2t/aoc2024/blob/master/07.go
+
 func addition(calibration, mesure int) int {
 	return calibration + mesure
 }
