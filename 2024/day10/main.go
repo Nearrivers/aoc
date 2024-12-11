@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+type trailChar rune
+
 const (
 	zero trailChar = '0'
 	one trailChar = '1'
@@ -19,11 +21,16 @@ const (
 	nine trailChar = '9'
 )
 
-type trailChar rune
+type coord struct {
+	i, j int
+}
 
 type Trails [][]trailChar
 
+var trailsEndCoord = []coord{}
+
 var nextChar = map[trailChar]trailChar{
+	zero: one,
 	one: two,
 	two: three,
 	three: four,
@@ -43,25 +50,67 @@ func (t Trails) String() string {
 	return out
 }
 
+func (t Trails) Print(i, j int) {
+	var out string
+
+	for k := range t {
+		for l, char := range t[k] {
+			if k == i && l == j {
+				out += "x"
+				continue
+			}
+
+			out += string(char)
+		}
+		out+= "\n"
+	}
+
+	fmt.Println(out)
+}
+
+
 func (t Trails) findTrail(i, j int, char trailChar) int {
 	score := 0
 
+	// t.Print(i, j)
+	// fmt.Println(score)
+
 	if char == nine {
 		score++
+		// if slices.IndexFunc(trailsEndCoord, func(c coord) bool {
+		// 	return c.i == i && c.j == j
+		// }) == - 1 {
+		// 	score++
+		// 	trailsEndCoord = append(trailsEndCoord, coord{i, j})
+		// }
+	}
+
+	nc, ok := nextChar[char]
+	if !ok {
 		return score
 	}
 
-	adjacentNumber := make([]trailChar, 4)
-
-	if i < len(t) -1 {
-		adjacentNumber[0] = t[i][j]
+	if i < len(t) -1 && t[i+1][j] == nc {
+		score += t.findTrail(i+1, j, nc)
 	}
 
-	if i
+	if i > 0 && t[i-1][j] == nc {
+		score += t.findTrail(i-1, j, nc)
+	}
+
+	if j < len(t[i]) - 1 && t[i][j+1] == nc {
+		score += t.findTrail(i, j+1, nc)
+	}
+
+	if j > 0  && t[i][j-1] == nc {
+		score += t.findTrail(i, j-1, nc)
+	}
+
+	return score
 }
 
 func main() {
-	file, err := os.Open("example.txt")
+	file, err := os.Open("input.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -78,7 +127,8 @@ func main() {
 	for i := range t {
 		for j, tc := range t[i] {
 			if tc == '0' {
-				totalScore += t.findTrail(i, j, one)
+				totalScore += t.findTrail(i, j, zero)
+				trailsEndCoord = []coord{}
 			}
 		}
 	}
