@@ -7,12 +7,13 @@ import (
 	"strings"
 )
 
-var maxBlinkCount = 25
+const maxBlinkCount = 75
 
-func blink(stones []int64, count int) []int64 {
+func blink(stones []int64, count int, ch chan []int64) {
 	var newStones []int64	
 	if count > maxBlinkCount {
-		return stones
+		ch <- stones
+		return
 	}
 
 	for _, stone := range stones {
@@ -21,7 +22,7 @@ func blink(stones []int64, count int) []int64 {
 			continue
 		}
 
-			strStone := strconv.FormatInt(stone, 10)
+		strStone := strconv.FormatInt(stone, 10)
 		if len(strStone) % 2 == 0 {
 			h := len(strStone) / 2
 			firstNewStone, _ := strconv.ParseInt(strStone[:int(h)], 10, 64)
@@ -35,7 +36,7 @@ func blink(stones []int64, count int) []int64 {
 	}
 
 	count++
-	return blink(newStones, count)
+	blink(newStones, count, ch)
 }
 
 func main() {
@@ -55,6 +56,33 @@ func main() {
 	}
 
 	count := 1
-	stones := blink(numbers, count)
-	fmt.Println(len(stones))
+
+	h := len(numbers) / 2
+	firstCh := make(chan []int64)
+	blink(numbers[:h], count, firstCh)
+
+	secondCh := make(chan []int64)
+	blink(numbers[h:], count, secondCh)
+
+	var firstChunk []int64
+	var secondChunk []int64
+	for {
+		select {
+		case s := <- firstCh:
+			firstChunk = s
+			close(firstCh)
+		case s := <- secondCh:
+			secondChunk = s
+			close(secondCh)
+		}
+
+		_, ok1 := <- firstCh
+		_, ok2 := <- secondCh
+
+		if !ok1 && !ok2 {
+			break
+		}
+	}
+
+	fmt.Println(len(firstChunk) + len(secondChunk))
 }
