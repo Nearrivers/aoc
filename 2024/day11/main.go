@@ -7,36 +7,38 @@ import (
 	"strings"
 )
 
-const maxBlinkCount = 75
+type Memo map[[2]int64]int64
 
-func blink(stones []int64, count int, ch chan []int64) {
-	var newStones []int64	
-	if count > maxBlinkCount {
-		ch <- stones
-		return
+var memo Memo
+
+func blink(remainingBlinks int64, stone int64) int64 {
+	if remainingBlinks == 0 {
+		return 1
 	}
 
-	for _, stone := range stones {
-		if stone == 0 {
-			newStones = append(newStones, 1)
-			continue
-		}
-
-		strStone := strconv.FormatInt(stone, 10)
-		if len(strStone) % 2 == 0 {
-			h := len(strStone) / 2
-			firstNewStone, _ := strconv.ParseInt(strStone[:int(h)], 10, 64)
-			secondNewStone, _ := strconv.ParseInt(strStone[int(h):], 10, 64)
-
-			newStones = append(newStones, []int64{firstNewStone, secondNewStone}...)
-			continue
-		}
-
-		newStones = append(newStones, stone*2024)
+	if v, ok := memo[[2]int64{remainingBlinks, stone}]; ok {
+		return v
 	}
 
-	count++
-	blink(newStones, count, ch)
+	if stone == 0 {
+		result := blink(remainingBlinks-1, 1)
+		memo[[2]int64{remainingBlinks, stone}] = result
+		return result
+	}
+
+	strStone := strconv.FormatInt(stone, 10)
+	if len(strStone)%2 == 0 {
+		h := len(strStone) / 2
+		firstNewStone, _ := strconv.ParseInt(strStone[:int(h)], 10, 64)
+		secondNewStone, _ := strconv.ParseInt(strStone[int(h):], 10, 64)
+		result := blink(remainingBlinks-1, firstNewStone) + blink(remainingBlinks-1, secondNewStone)
+		memo[[2]int64{remainingBlinks, stone}] = result
+		return result
+	}
+
+	result := blink(remainingBlinks-1, stone*2024)
+	memo[[2]int64{remainingBlinks, stone}] = result
+	return result
 }
 
 func main() {
@@ -46,43 +48,14 @@ func main() {
 	}
 
 	puzzle := string(b)
-
 	strNb := strings.Fields(puzzle)
-	numbers := make([]int64, 0)
+	var total int64
 
+	memo = make(Memo)
 	for _, s := range strNb {
 		i, _ := strconv.ParseInt(s, 10, 64)
-		numbers = append(numbers, i)
+		total += blink(75, i)
 	}
 
-	count := 1
-
-	h := len(numbers) / 2
-	firstCh := make(chan []int64)
-	blink(numbers[:h], count, firstCh)
-
-	secondCh := make(chan []int64)
-	blink(numbers[h:], count, secondCh)
-
-	var firstChunk []int64
-	var secondChunk []int64
-	for {
-		select {
-		case s := <- firstCh:
-			firstChunk = s
-			close(firstCh)
-		case s := <- secondCh:
-			secondChunk = s
-			close(secondCh)
-		}
-
-		_, ok1 := <- firstCh
-		_, ok2 := <- secondCh
-
-		if !ok1 && !ok2 {
-			break
-		}
-	}
-
-	fmt.Println(len(firstChunk) + len(secondChunk))
+	fmt.Println(total)
 }
