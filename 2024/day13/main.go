@@ -10,7 +10,7 @@ import (
 )
 
 // I could have never found the answer alone. The answer was found following and understanding
-// the wonderful video from HyperNeutrino
+// the wonderful video from HyperNeutrino at https://www.youtube.com/watch?v=-5J-DAsWuJc
 func main() {
 	var re = regexp.MustCompile(`\d+`)
 
