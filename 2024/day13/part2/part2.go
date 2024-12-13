@@ -1,4 +1,4 @@
-package main
+package part2
 
 import (
 	"fmt"
@@ -32,15 +32,13 @@ func main() {
 		machines = append(machines, c)
 	}
 
-	// Matrix approach
 	totalChips := 0
 	for _, m := range machines {
 		ax, ay, bx, by, px, py := m[0], m[1], m[2], m[3], m[4], m[5]
-		determinant := ax*by - bx*ay
 		px += 10000000000000
 		py += 10000000000000
-		nbA := (by*px - bx*py) / determinant
-		nbB := (-ay*px + ax*py) / determinant
+		nbA := (px*by - py*bx) / (ax*by - ay*bx)
+		nbB := (px - ax*nbA) / bx
 		if math.Mod(nbA, 1.0) == 0 && math.Mod(nbB, 1.0) == 0 {
 			totalChips += int(nbA)*3 + int(nbB)
 		}
