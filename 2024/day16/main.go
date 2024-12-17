@@ -2,8 +2,8 @@ package main
 
 import (
 	"bufio"
+	"container/heap"
 	"fmt"
-	"math"
 	"os"
 )
 
@@ -66,7 +66,7 @@ func main() {
 	}
 
 	dr, dc := 0, 1
-	priorityQueue.Push(Vertex{
+	heap.Push(&priorityQueue, Vertex{
 		row:      deerRow,
 		col:      deerCol,
 		dr:       dr,
@@ -74,21 +74,16 @@ func main() {
 		distance: 0,
 	})
 
-	minDistance := math.MaxInt
 	visited[[4]int{deerRow, deerCol, dr, dc}] = 0
-	defer func() {
-		fmt.Println(minDistance)
-	}()
 
 	for len(priorityQueue) > 0 {
-		v := priorityQueue.Pop().(Vertex)
+		v := heap.Pop(&priorityQueue).(Vertex)
 		visited[[4]int{v.row, v.col, v.dr, v.dc}] = v.distance
 
 		if grid[v.row][v.col] == 'E' {
-			if minDistance > v.distance {
-				minDistance = v.distance
-			}
-			fmt.Println(minDistance)
+			// minDistance = v.distance
+			fmt.Println(v.distance)
+			break
 		}
 
 		possibleMoves := []Move{
@@ -105,12 +100,7 @@ func main() {
 				continue
 			}
 
-			char := grid[move.row][move.col]
-			if char != 'E' && char != 'S' {
-				grid[move.row][move.col] = 'x'
-			}
-
-			priorityQueue.Push(Vertex{
+			heap.Push(&priorityQueue, Vertex{
 				row:      move.row,
 				col:      move.col,
 				dr:       move.dr,
@@ -119,5 +109,4 @@ func main() {
 			})
 		}
 	}
-	fmt.Println(minDistance)
 }
