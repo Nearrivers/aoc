@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"slices"
 	"strconv"
 )
 
 const (
 	DIMENSIONS = 71
-	BYTECOUNT  = 1024
 )
 
 type Vertex struct {
@@ -71,34 +69,7 @@ func (v Visited) String() string {
 	return out
 }
 
-func main() {
-	grid := make(Grid, DIMENSIONS)
-
-	for i := range grid {
-		grid[i] = make([]rune, DIMENSIONS)
-		for j := range grid[0] {
-			grid[i][j] = '.'
-		}
-	}
-
-	file, err := os.Open("example.txt")
-	if err != nil {
-		panic(err)
-	}
-
-	count := 0
-	scanner := bufio.NewScanner(file)
-	reg := regexp.MustCompile(`\d+`)
-
-	for scanner.Scan() && count < BYTECOUNT {
-		count++
-		s := reg.FindAllString(scanner.Text(), -1)
-
-		n1, _ := strconv.ParseInt(s[0], 10, 64)
-		n2, _ := strconv.ParseInt(s[1], 10, 64)
-		grid[n2][n1] = '#'
-	}
-
+func isEndReachable(grid Grid) bool {
 	var priorityQueue MinHeap
 
 	heap.Push(&priorityQueue, Vertex{
@@ -109,9 +80,7 @@ func main() {
 
 	visited := make(Visited, 0)
 	visited[[2]int{0, 0}] = true
-	distances := make([]int, 0)
 
-outer:
 	for priorityQueue.Len() > 0 {
 		v := heap.Pop(&priorityQueue).(Vertex)
 
@@ -121,8 +90,6 @@ outer:
 			{row: v.row, col: v.col + 1},
 			{row: v.row, col: v.col - 1},
 		}
-
-		grid[v.row][v.col] = 'x'
 
 		for _, move := range possibleMoves {
 			if move.row < 0 || move.col < 0 || move.row == DIMENSIONS || move.col == DIMENSIONS {
@@ -138,11 +105,8 @@ outer:
 				continue
 			}
 
-			distances = append(distances, v.distance)
-
 			if move.col == DIMENSIONS-1 && move.row == DIMENSIONS-1 {
-				fmt.Println(v.distance + 1)
-				break outer
+				return true
 			}
 
 			visited[mn] = true
@@ -153,7 +117,37 @@ outer:
 			})
 		}
 	}
-	// fmt.Println(visited)
-	distances = slices.Compact(distances)
-	fmt.Println(len(distances))
+
+	return false
+}
+
+func main() {
+	grid := make(Grid, DIMENSIONS)
+
+	for i := range grid {
+		grid[i] = make([]rune, DIMENSIONS)
+		for j := range grid[0] {
+			grid[i][j] = '.'
+		}
+	}
+
+	file, err := os.Open("input.txt")
+	if err != nil {
+		panic(err)
+	}
+
+	scanner := bufio.NewScanner(file)
+	reg := regexp.MustCompile(`\d+`)
+
+	for scanner.Scan() {
+		s := reg.FindAllString(scanner.Text(), -1)
+
+		n1, _ := strconv.ParseInt(s[0], 10, 64)
+		n2, _ := strconv.ParseInt(s[1], 10, 64)
+		grid[n2][n1] = '#'
+		if !isEndReachable(grid) {
+			fmt.Println(n1, n2)
+			break
+		}
+	}
 }
