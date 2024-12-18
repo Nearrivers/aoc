@@ -3,7 +3,9 @@ package main
 import (
 	"bufio"
 	"container/heap"
+	"container/list"
 	"fmt"
+	"math"
 	"os"
 )
 
@@ -75,15 +77,35 @@ func main() {
 	})
 
 	visited[[4]int{deerRow, deerCol, dr, dc}] = 0
+	// Map du dernier meilleur chemin emprunté pour chaque sommet
+	lastPath := make(map[[4]int]map[[4]int]bool, 0)
+	endMoves := make(map[[4]int]bool, 0)
+	minDistance := math.MaxInt
 
 	for len(priorityQueue) > 0 {
 		v := heap.Pop(&priorityQueue).(Vertex)
-		visited[[4]int{v.row, v.col, v.dr, v.dc}] = v.distance
+
+		vn := [4]int{v.row, v.col, v.dr, v.dc}
+		// Initialisation distance première visite à +Inf
+		_, ok := visited[vn]
+		if !ok {
+			visited[vn] = math.MaxInt
+		}
+
+		// Si on a déjà trouvé un meilleur chemin, on passe
+		if v.distance > visited[vn] {
+			continue
+		}
 
 		if grid[v.row][v.col] == 'E' {
-			// minDistance = v.distance
-			fmt.Println(v.distance)
-			break
+			// Si on est arrivé au bout avec un pire chemin que le meilleur trouvé, alors on quitte.
+			// Etant donné que l'on utilise une minHeap, si on trouve un chemin avec un total de distance supérieur, alors
+			// cela veut dire que le ou les meilleurs chemins on été trouvés et que l'on peut arrêter l'exécution
+			if v.distance > minDistance {
+				break
+			}
+			minDistance = v.distance
+			endMoves[vn] = true
 		}
 
 		possibleMoves := []Move{
@@ -95,10 +117,26 @@ func main() {
 		for _, move := range possibleMoves {
 			n := [4]int{move.row, move.col, move.dr, move.dc}
 
-			vis, ok := visited[n]
-			if grid[move.row][move.col] == '#' || (vis < v.distance && ok) {
+			lowestDistance, ok := visited[n]
+			if !ok {
+				lowestDistance = math.MaxInt
+			}
+
+			if grid[move.row][move.col] == '#' || (lowestDistance < move.cost) {
 				continue
 			}
+
+			if move.cost < lowestDistance {
+				lastPath[n] = make(map[[4]int]bool)
+				// Ajout du chemin
+				visited[n] = move.cost
+			}
+
+			if grid[move.row][move.col] != 'E' {
+				grid[move.row][move.col] = 'x'
+			}
+
+			lastPath[n][vn] = true
 
 			heap.Push(&priorityQueue, Vertex{
 				row:      move.row,
@@ -109,4 +147,40 @@ func main() {
 			})
 		}
 	}
+
+	queue := list.New()
+	fmt.Println(endMoves)
+
+	seen := make(map[[4]int]bool, 0)
+
+	for k := range endMoves {
+		queue.PushBack(lastPath[k])
+		seen[k] = true
+	}
+
+	tilesCount := 0
+
+	for queue.Len() > 0 {
+		front := queue.Front()
+
+		for k := range front.Value.(map[[4]int]bool) {
+			if _, ok := seen[k]; ok {
+				continue
+			}
+			fmt.Println(k)
+
+			seen[k] = true
+			queue.PushBack(lastPath[k])
+			tilesCount++
+		}
+		queue.Remove(front)
+	}
+
+	uniqueCoor := make(map[[2]int]bool, 0)
+
+	for k := range seen {
+		uk := [2]int{k[0], k[1]}
+		uniqueCoor[uk] = true
+	}
+	fmt.Println(len(uniqueCoor))
 }
