@@ -9,7 +9,7 @@ pub fn main() !void {
 
     aocCli.printArgs();
 
-    const fullPath = std.fmt.allocPrint(allocator, "./day{d}/{s}.txt", .{ aocCli.day, @tagName(aocCli.flow) }) catch |err| {
+    const fullPath = std.fmt.allocPrint(allocator, "./src/day{d}/{s}.txt", .{ aocCli.day, @tagName(aocCli.flow) }) catch |err| {
         std.debug.print("error: could not determine file path: {}", .{err});
         std.process.exit(1);
     };
@@ -17,7 +17,7 @@ pub fn main() !void {
     defer allocator.free(fullPath);
 
     var challengeFile = std.fs.cwd().openFile(fullPath, .{ .mode = .read_only }) catch |err| {
-        std.debug.print("error: unable to open challenge file: {}", .{err});
+        std.debug.print("error: unable to open challenge file {s}: {}", .{ fullPath, err });
         std.process.exit(1);
     };
 
@@ -30,7 +30,7 @@ pub fn main() !void {
     }
 
     switch (aocCli.day) {
-        1 => day1.day1(challengeFile, allocator),
+        1 => try day1.day1(challengeFile, allocator, aocCli.part),
         else => {
             std.debug.print("error: day not done yet\n", .{});
             std.process.exit(1);
