@@ -2,6 +2,7 @@ use std::{fs, process};
 
 mod cli;
 mod day1;
+mod day2;
 
 // Cli usage cargo run -- <day> <part> <flow>
 // Where flow is whether the real input or the example is used
@@ -19,6 +20,16 @@ fn main() {
             match part {
                 1 => day1::day1::part1(contents),
                 2 => day1::day1::part2(contents),
+                _ => {
+                    println!("error: only 2 parts.");
+                    process::exit(1);
+                }
+            };
+        }
+        2 => {
+            match part {
+                1 => day2::day2::part1(contents),
+                2 => day2::day2::part2(contents),
                 _ => {
                     println!("error: only 2 parts.");
                     process::exit(1);
